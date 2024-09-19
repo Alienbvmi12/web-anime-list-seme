@@ -1,6 +1,7 @@
 <script>
     const base_url = '<?= base_url() ?>';
     const source = {
+        source_id: '<?= $sources[0]->id ?>',
         base_url: '<?= $sources[0]->api_base_url ?>',
         api_name: '<?= $sources[0]->source ?>'
     };
@@ -82,29 +83,12 @@
         })
     });
 
-    function modal(type, context) {
-        if (type == "create") {
-            $("#nama_produk").val("");
-            $("#harga").val("");
-            $("#stok").val("");
-            $("#status").val("1");
-            $("#stok-container").removeClass("d-none");
-
-            $("#submit").attr("onclick", "create()");
-            $("#modal-title").html("Tambah Data Petugas");
-        } else {
-            let row = context.parentNode.parentNode.getElementsByTagName("td");
-            edit_id = row[0].innerHTML;
-            $("#nama_produk").val(row[1].innerHTML);
-            $("#harga").val(_decode_rupiah(row[2].innerHTML));
-            $("#status").val(row[4].innerHTML == "Aktif" ? 1 : 0);
-            // $("#stok").val(row[3].innerHTML);
-
-            $("#stok-container").addClass("d-none");
-
-            $("#submit").attr("onclick", "edit(this)");
-            $("#modal-title").html("Edit Data Petugas");
-        }
+    function modal() {
+        $("#select-anime-page-1").removeClass("d-none");  
+        $("#next").removeClass("d-none");  
+        $("#select-anime-page-2").addClass("d-none");  
+        $("#submit").addClass("d-none");  
+        selectedAnime = [];
     }
 
     let searchInterval;
@@ -150,7 +134,7 @@
         return `
             <div class="col-sm-3 d-flex justify-content-center">
                 <div class="mt-2 pt-2 ` + sel + `" style="width: 18rem; border-radius : 10px; cursor: pointer" onclick="selectAnime(this, '` + id + `')" id="` + id + `">
-                    <div class="card-img-top d-flex justify-content-center">
+                    <div class="card-img-top d-flex justify-content-center px-2">
                         <img src="` + image + `" style="height: 200px; border-radius : 10px" alt="` + title + `'s cover image">
                     </div>
                     <div class="card-body" style="margin-top: -10px">
@@ -182,5 +166,39 @@
             selectedAnime.push(value);
         }
         console.log(selectedAnime);
+    }
+
+    function showPage2(){
+        $("#select-anime-page-1").addClass("d-none");  
+        $("#next").addClass("d-none");  
+        $("#select-anime-page-2").removeClass("d-none");  
+        $("#submit").removeClass("d-none");  
+    }
+
+    function submitSelectedAnime(){
+        NProgress.start();
+        $.ajax({
+            url: base_url + "api/anime_list/list_new/",
+            type: "post",
+            data: JSON.stringify({
+                source_id: source.source_id,
+                data: selectedAnime
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            success: function(response) {
+                if (response.status == 200) {
+                    toastr.success("<b>Success</b><br>" + response.message);
+                    $("#closee").click();
+                } else {
+                    toastr.warning("<b>Warning</b><br>" + response.message);
+                }
+                NProgress.done();
+            },
+            error: function(xhr) {
+                toastr.error("<b>Error</b><br> Internal Server Error");
+                NProgress.done();
+            }
+        });
     }
 </script>
