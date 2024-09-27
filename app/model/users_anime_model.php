@@ -25,7 +25,8 @@ class Users_Anime_Model extends JI_Model
         $this->db->from($this->tbl, $this->tbl_as);
     }
 
-    public function count($user_id){
+    public function count($user_id)
+    {
         $this->db->from($this->tbl, $this->tbl_as);
         $this->db->select_as("$this->tbl_as.id", "id");
         $this->db->select_as("count($this->tbl_as.id)", "total");
@@ -49,6 +50,7 @@ class Users_Anime_Model extends JI_Model
     {
         $this->db->select_as("$this->tbl_as.id", "id");
         $this->db->select_as("$this->tbl_as.anime_id", "anime_id");
+        $this->db->select_as("$this->tbl2_as.original_data_id", "anime_source_id");
         $this->db->select_as("$this->tbl2_as.image_url", "image_url");
         $this->db->select_as("$this->tbl2_as.title", "title");
         $this->db->select_as("$this->tbl_as.status", "status");
@@ -65,5 +67,14 @@ class Users_Anime_Model extends JI_Model
         $this->db->order_by($this->columns[$data->column], $data->dir);
         $this->db->limit($data->start, $data->length);
         return $this->db->get();
+    }
+
+    public function is_anime_already_exist($user_id, $anime_id)
+    {
+        $this->db->from($this->tbl, $this->tbl_as);
+        $this->db->select_as("count($this->tbl_as.id)", "total");
+        $this->db->where("$this->tbl_as.user_id", $user_id, "AND", "=", 0, 0);
+        $this->db->where("$this->tbl_as.anime_id", $anime_id, "AND", "=", 0, 0);
+        return $this->db->get_first()->total > 0;
     }
 }
